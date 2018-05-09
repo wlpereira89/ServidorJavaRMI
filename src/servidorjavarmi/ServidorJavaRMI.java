@@ -5,17 +5,43 @@
  */
 package servidorjavarmi;
 
+import java.rmi.AccessException;
+import java.rmi.AlreadyBoundException;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  *
- * @author wagner
+ * @author allan
  */
 public class ServidorJavaRMI {
 
-    /**
-     * @param args the command line arguments
-     */
     public static void main(String[] args) {
-        // TODO code application logic here
+        
+        try {
+            //while(true){
+            ServImpl serv = new ServImpl();
+            //InterfaceServ stub = (InterfaceServ) UnicastRemoteObject.exportObject(serv, 1099);
+            Registry referenciaServicoNomes = LocateRegistry.createRegistry(1099);
+            referenciaServicoNomes.bind("Servidor2", serv);
+            
+            System.out.println("Servidor pronto");
+
+            /*
+            Registry referenciaServicoNomes = LocateRegistry.createRegistry(1099);
+            ServImpl serv = new ServImpl();
+            referenciaServicoNomes.bind("Servidor1", serv);
+            */
+            //}
+        } catch (RemoteException ex) {
+            System.out.println("Classe Servidor: Erro ao iniciar servico de nomes " + ex);
+        } catch (AlreadyBoundException ex) {
+            Logger.getLogger(ServidorJavaRMI.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
 }
