@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package servidorjavarmi;
+package javarmi;
 
 import java.rmi.AccessException;
 import java.rmi.AlreadyBoundException;
@@ -18,15 +18,16 @@ import java.util.logging.Logger;
  *
  * @author allan
  */
-public class ServidorJavaRMI {
-
+public class Servidor {
+    public static ServImpl serv;
+    public static Registry referenciaServicoNomes;
     public static void main(String[] args) {
         
         try {
             //while(true){
-            ServImpl serv = new ServImpl();
+            serv = new ServImpl();
             //InterfaceServ stub = (InterfaceServ) UnicastRemoteObject.exportObject(serv, 1099);
-            Registry referenciaServicoNomes = LocateRegistry.createRegistry(1099);
+            referenciaServicoNomes = LocateRegistry.createRegistry(1099);
             referenciaServicoNomes.bind("Servidor2", serv);
             
             System.out.println("Servidor pronto");
@@ -40,7 +41,7 @@ public class ServidorJavaRMI {
         } catch (RemoteException ex) {
             System.out.println("Classe Servidor: Erro ao iniciar servico de nomes " + ex);
         } catch (AlreadyBoundException ex) {
-            Logger.getLogger(ServidorJavaRMI.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
