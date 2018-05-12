@@ -28,7 +28,7 @@ public class ServImpl extends UnicastRemoteObject implements InterfaceServ {
     }
 
     @Override
-    public void chamar(String nomeCliente, InterfaceCli refCliente) throws RemoteException {
+    synchronized public void chamar(String nomeCliente, InterfaceCli refCliente) throws RemoteException {
         try {
             refCliente.echo("Servidor recebeu msg do cliente " + nomeCliente);
         } catch (RemoteException ex) {
@@ -37,7 +37,7 @@ public class ServImpl extends UnicastRemoteObject implements InterfaceServ {
     }
 
     @Override
-    public boolean procuraArquivo(String nomeArquivo) throws RemoteException{
+    synchronized public boolean procuraArquivo(String nomeArquivo) throws RemoteException{
         if (arquivos.size() > 0) {
             String[] arq;
             for (int i = 0; i < arquivos.size(); i++) {
@@ -51,7 +51,7 @@ public class ServImpl extends UnicastRemoteObject implements InterfaceServ {
     }
 
     @Override
-    public String[] downloadArquivo(String nomeArquivo) throws RemoteException {
+    synchronized public String[] downloadArquivo(String nomeArquivo) throws RemoteException {
         String[] arq = null;
         if (arquivos.size() >= 1) {
             for (int i = 0; i < arquivos.size(); i++) {
@@ -65,7 +65,7 @@ public class ServImpl extends UnicastRemoteObject implements InterfaceServ {
     }
 
     @Override
-    public void listarArquivos() throws RemoteException{
+    synchronized public void listarArquivos() throws RemoteException{
         if (arquivos.size() > 0) {
             String[] arq;
             for (int i = 0; i < arquivos.size(); i++) {
@@ -79,32 +79,47 @@ public class ServImpl extends UnicastRemoteObject implements InterfaceServ {
 
     @Override
     @SuppressWarnings("empty-statement")
-    public void uploadArquivo(String[] arquivo) throws RemoteException {
+    synchronized public void uploadArquivo(String[] arquivo) throws RemoteException {
         arquivos.add(arquivo);
+        List<Integer> remover = new ArrayList();
         for (int i = 0; i < interesses.size(); i++) {
             Interesse interesse = interesses.get(i);
-            if ((interesse.getNomeArquivo().equals(arquivo[0]))
-                    && (interesse.getDataLimite().compareTo(new Date(System.currentTimeMillis())) <= 0)) {
-                
-                try {
-                    interesse.getRefCliente().notificarInteresse(arquivo[0]);
-                } catch (RemoteException ex) {
-                    System.out.println("Classe ServImpl: erro ao tentar utilizar metodo echo" + ex);
+            if (interesse.getNomeArquivo().equals(arquivo[0])) {
+                remover.add(i); //remover o interesse já respondido tanto notificado quanto expirado
+                if (interesse.getDataLimite().compareTo(new Date(System.currentTimeMillis())) >= 0){
+                    try {
+                        interesse.getRefCliente().notificarInteresse(arquivo[0]);
+                    } catch (RemoteException ex) {
+                        System.out.println("Classe ServImpl: erro ao tentar contatar o cliente " + ex);
+                    }
                 }
-
+                
             }
+        }
+        for (int i = remover.size()-1; i >= 0 ; i--){
+            interesses.remove(i);
         }
     }
 
     @Override
-    public void registrarInteresse(String arquivo, InterfaceCli refCliente, Date dataLimite) throws RemoteException {
+    synchronized public void registrarInteresse(String arquivo, InterfaceCli refCliente, Date dataLimite) throws RemoteException {
         this.interesses.add(new Interesse(arquivo, refCliente, dataLimite));
     }
-    public boolean escreverArquivo(String nome, String conteudo){
-        String[] nova  = {nome, conteudo};
-        
-        arquivos.add(nova);
+    synchronized public boolean escreverArquivo(String nome, String conteudo) throws RemoteException{
+        String[] nova  = {nome, conteudo};        
+        this.uploadArquivo(nova);
         return true;
+    }
+    @Override
+    synchronized public boolean cancelarInteresse(String nome, InterfaceCli refCliente) throws RemoteException{
+        for (int i = 0; i < interesses.size(); i++) {
+            Interesse interesse = interesses.get(i);
+            if ((interesse.getNomeArquivo().equals(nome))&&(refCliente.equals(interesse.getRefCliente()))) {
+                interesses.remove(i);
+                return true;
+            }            
+        }
+        return false;
     }
     public void listarInteresses(){
         if (interesses.size() > 0) {
@@ -117,5 +132,20 @@ public class ServImpl extends UnicastRemoteObject implements InterfaceServ {
             System.out.println("Não foram registrados interesses até o momento");
         }
     }
-
+    @Override
+    public List<String> listarInfoArquivos() throws RemoteException{
+        List<String> infos = new ArrayList();
+        if (arquivos.size() > 0) {
+            String[] arq;
+            for (int i = 0; i < arquivos.size(); i++) {
+                arq = arquivos.get(i);
+                String nova = arq[0] + " - com " + arq[1].length() + " caracteres";
+                infos.add(nova);
+            }
+        }
+        else {
+            infos.add("Servidor ainda sem arquivos");
+        }
+        return infos;
+    }
 }
