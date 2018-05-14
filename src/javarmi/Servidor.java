@@ -8,18 +8,18 @@ package javarmi;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.rmi.AccessException;
 import java.rmi.AlreadyBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.rmi.server.UnicastRemoteObject;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
  *
  * @author allan
+ * @author wagner
+ * 
  */
 public class Servidor {
     public static ServImpl serv;
@@ -28,59 +28,46 @@ public class Servidor {
         BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
         Boolean permanecer = true;
         try {
-            //while(true){
             serv = new ServImpl();
-            //InterfaceServ stub = (InterfaceServ) UnicastRemoteObject.exportObject(serv, 1099);
             referenciaServicoNomes = LocateRegistry.createRegistry(1099);
             referenciaServicoNomes.bind("Servidor2", serv);
-            
             System.out.println("Servidor pronto");
             while (permanecer) {
-                System.out.println("Digite o que deseja fazer:");
-
+                System.out.println("\nDigite o que deseja fazer:");
                 System.out.println("1 - Escrever novo arquivo");
                 System.out.println("2 - Listar próprios arquivos");
                 System.out.println("3 - Listar interesses");
                 System.out.println("0 - sair");
-
                 String opp = in.readLine();
                 String msg;
                 String nome;
                 String conteudo;
                 switch (opp) {
-
-                    // Sair
-                    case "0":
+                    case "0": // Sair
                         System.exit(0);
                         break;
-                    case "1":
-                        System.out.println("Escreva o nome do arquivo");
+                    case "1": // escrever novo arquivo
+                        System.out.println("\nEscreva o nome do arquivo");
                         nome = in.readLine();
-                        System.out.println("Escreva o conteudo do arquivo");
+                        System.out.println("\nEscreva o conteudo do arquivo");
                         conteudo = in.readLine();
                         if (serv.escreverArquivo(nome, conteudo)) {
-                            System.out.println("Arquivo inserido com sucesso");
+                            System.out.println("\nArquivo inserido com sucesso");
                         } else {
-                            System.out.println("Erro na inserção do arquivo");
+                            System.out.println("\nErro na inserção do arquivo");
                         }
                         break;
-                    case "2":
+                    case "2": // Listar proprios arquivos
                         serv.listarArquivos();
                         break;
-                    case "3":
+                    case "3": // Listar interesses
                         serv.listarInteresses();
                         break;
                     default:
-                        System.out.println("Opção inválida digite nova opção");
+                        System.out.println("\nOpção inválida digite nova opção");
                         break;
                 }
             }
-            /*
-            Registry referenciaServicoNomes = LocateRegistry.createRegistry(1099);
-            ServImpl serv = new ServImpl();
-            referenciaServicoNomes.bind("Servidor1", serv);
-            */
-            //}
         } catch (RemoteException ex) {
             System.out.println("Classe Servidor: Erro ao iniciar servico de nomes " + ex);
         } catch (AlreadyBoundException ex) {
