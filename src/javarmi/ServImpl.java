@@ -104,9 +104,9 @@ public class ServImpl extends UnicastRemoteObject implements InterfaceServ {
         for (int i = 0; i < interesses.size(); i++) {
             Interesse interesse = interesses.get(i);
             // arq[0] = nome     arq[1] = conteudo
+            Calendar agora = Calendar.getInstance();
             if (interesse.getNomeArquivo().equals(arquivo[0])) {
-                remover.add(interesse); //remover o interesse já respondido, tanto notificado quanto expirado
-                Calendar agora = Calendar.getInstance();
+                remover.add(interesse); //remover o interesse já respondido, tanto notificado quanto expirado                
                 if (interesse.getDataLimite().compareTo( agora.getTime() ) >= 0){    
                     try {
                         // arq[0] = nome     arq[1] = conteudo
@@ -114,8 +114,11 @@ public class ServImpl extends UnicastRemoteObject implements InterfaceServ {
                     } catch (RemoteException ex) {
                         System.out.println("Classe ServImpl: erro ao tentar contatar o cliente " + ex);
                     }
-                }
+                }                
             }
+            else if(interesse.getDataLimite().compareTo( agora.getTime() ) < 0){                    
+                        remover.add(interesse);
+                }
         }
         for (int i = 0; i < remover.size(); i++){
             Interesse interesse = remover.get(i);
