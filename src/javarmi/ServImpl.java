@@ -96,7 +96,9 @@ public class ServImpl extends UnicastRemoteObject implements InterfaceServ {
      */
     @Override
     @SuppressWarnings("empty-statement")
-    synchronized public void uploadArquivo(String[] arquivo) throws RemoteException {
+    synchronized public void uploadArquivo(String[] arquivo) throws RemoteException {        
+        if (this.removeArq(arquivo[0]))
+            System.out.println("Arquivo já existia e foi atualizado");            
         arquivos.add(arquivo);
         List<Interesse> remover = new ArrayList<>();
         for (int i = 0; i < interesses.size(); i++) {
@@ -120,7 +122,7 @@ public class ServImpl extends UnicastRemoteObject implements InterfaceServ {
             interesses.remove(interesse);
         }
     }
-
+    
     /**
      * Método responsável por registrar interesse em arquivo que será criado futuramente no servidor
      * @param arquivo nome do arquivo objeto de interesse
@@ -134,7 +136,7 @@ public class ServImpl extends UnicastRemoteObject implements InterfaceServ {
     }
     
     /**
-     * Método responsável por escrever arquivo no servidor
+     * Método responsável por escrever arquivo no servidor, criando um arquivo atráves de seu nome e conteúdo
      * @param nome nome do arquivo que será criado
      * @param conteudo conteúdo do arquivo que será criado
      * @return boolean - true caso arquivo seja criado com sucesso, ou false do contrário
@@ -202,5 +204,23 @@ public class ServImpl extends UnicastRemoteObject implements InterfaceServ {
             infos.add("\nServidor ainda sem arquivos");
         }
         return infos;
+    }
+    /**
+     * Método responsável por obter um arquivo da lista de arquivos do cliente
+     * @param nomeArquivo  nome do arquivo a ser obtido
+     * @return Boolean - true se houver arquivo removido, false se não houver arquivo
+     */
+    private boolean removeArq(String nomeArquivo){
+        String[] arq = null;
+        if (arquivos.size() >= 1) {
+            for (int i = 0; i < arquivos.size(); i++) {
+                arq = arquivos.get(i);
+                if (arq[0].equals(nomeArquivo)) {
+                    arquivos.remove(i);
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
